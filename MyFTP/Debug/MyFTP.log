@@ -1,0 +1,5 @@
+﻿  CLoginDlg.cpp
+E:\C++-workspace\FTPClient\MyFTP\CLoginDlg.cpp(177,20): warning C4018: “<”: 有符号/无符号不匹配
+  LoginData.cpp
+  正在生成代码...
+  MyFTP.vcxproj -> E:\C++-workspace\FTPClient\Debug\MyFTP.exe
