@@ -4,6 +4,7 @@
 
 #pragma once
 #include "CLoginDlg.h"
+#include "Afxinet.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -38,12 +39,23 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	DECLARE_MESSAGE_MAP()
 
-public:
-	afx_msg void OnClickConnect();
-
 private:
 	CLoginDlg loginDlg;
 	std::string readFileIntoString(char* filename);
+public:
+	afx_msg void OnClickConnect();
+	afx_msg void OnClickDownload();
+	afx_msg void OnClickUpload();
+	afx_msg void OnClickDelete();
+	afx_msg void OnClickNewFileFolder();
+	afx_msg void OnClickNewFile();
+
+public:
+	CInternetSession* pSession = NULL;     //定义会话对象指针变量
+	CFtpConnection* pConnection= NULL;   //定义连接对象指针变量
+	CFtpFileFind* pFileFind = NULL;          //定义文件查询对象指针变量
+	afx_msg void OnClickSearch();
+	BOOL connected = FALSE;
 };
 
 

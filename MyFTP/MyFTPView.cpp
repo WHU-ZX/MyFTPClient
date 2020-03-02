@@ -12,6 +12,7 @@
 
 #include "MyFTPDoc.h"
 #include "MyFTPView.h"
+#include "Afxinet.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,6 +37,9 @@ CMyFTPView::CMyFTPView() noexcept
 {
 	// TODO: 在此处添加构造代码
 
+
+	
+	
 }
 
 CMyFTPView::~CMyFTPView()
@@ -45,12 +49,16 @@ CMyFTPView::~CMyFTPView()
 void CMyFTPView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_TREE1, m_tree);
 }
 
 BOOL CMyFTPView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: 在此处通过修改
 	//  CREATESTRUCT cs 来修改窗口类或样式
+
+	
+
 
 	return CFormView::PreCreateWindow(cs);
 }
@@ -61,9 +69,127 @@ void CMyFTPView::OnInitialUpdate()
 	GetParentFrame()->RecalcLayout();
 	ResizeParentToFit();
 
+	initTree();
 }
 
+//执行实际的下载任务
+BOOL CMyFTPView::Download(CString strSName, CString strDName, CString ip, CString username, CString pwd)
+{
+	CInternetSession* pSession;      //定义会话对象变量指针
+	CFtpConnection* pConnection;    //定义连接对象变量指针
 
+	pConnection = NULL;
+
+	//创建Internet会话对象
+	pSession = new CInternetSession(AfxGetAppName(), 1,
+		PRE_CONFIG_INTERNET_ACCESS);
+
+	try
+	{
+		//建立FTP连接
+		pConnection = pSession->GetFtpConnection(ip,
+			username, pwd);
+	}
+	catch (CInternetException * e)
+	{
+		//错误处理
+		e->Delete();
+		pConnection = NULL;
+		return FALSE;
+	}
+
+	if (pConnection != NULL)
+	{
+		//下载文件
+		if (!pConnection->GetFile(strSName, strDName))
+		{
+			//下载文件错误
+			pConnection->Close();
+			delete pConnection;
+			delete pSession;
+			return FALSE;
+		}
+	}
+
+	//清除对象
+	if (pConnection != NULL)
+	{
+		pConnection->Close();
+		delete pConnection;
+	}
+	delete pSession;
+
+	return TRUE;
+}
+
+//执行实际的上传任务
+BOOL CMyFTPView::Upload(CString strSName, CString strDName, CString ip, CString username, CString pwd)
+{
+	CInternetSession* pSession;
+	CFtpConnection* pConnection;
+
+	pConnection = NULL;
+
+	//创建Internet会话
+	pSession = new CInternetSession(AfxGetAppName(), 1,
+		PRE_CONFIG_INTERNET_ACCESS);
+
+	try
+	{
+		//建立FTP连接
+		pConnection = pSession->GetFtpConnection(ip,
+			username, pwd);
+	}
+	catch (CInternetException * e)
+	{
+		//错误处理
+		e->Delete();
+		pConnection = NULL;
+		return FALSE;
+	}
+
+	if (pConnection != NULL)
+	{
+		//上传文件
+		if (!pConnection->PutFile(strSName, strDName))
+		{
+			//上传文件错误
+			pConnection->Close();
+			delete pConnection;
+			delete pSession;
+			return FALSE;
+		}
+	}
+
+	//清除对象
+	if (pConnection != NULL)
+	{
+		pConnection->Close();
+		delete pConnection;
+	}
+
+	delete pSession;
+
+	return TRUE;
+}
+
+//初始化TreeControl
+void CMyFTPView::initTree()
+{
+	//准备HICON图标
+	HICON icons[2];
+	icons[0] = AfxGetApp()->LoadIconW(FILEFOLDER_ICON);
+	icons[1] = AfxGetApp()->LoadIconW(FILE_ICON);
+
+	//创建图片集合
+	list.Create(20, 20, ILC_COLOR32, 2, 2);
+	//添加具体图片
+	list.Add(icons[0]);
+	list.Add(icons[1]);
+
+	m_tree.SetImageList(&list, TVSIL_NORMAL);
+	//m_tree.InsertItem(L"1", 0, 0, NULL);
+}
 // CMyFTPView 打印
 
 BOOL CMyFTPView::OnPreparePrinting(CPrintInfo* pInfo)
@@ -110,3 +236,5 @@ CMyFTPDoc* CMyFTPView::GetDocument() const // 非调试版本是内联的
 
 
 // CMyFTPView 消息处理程序
+
+

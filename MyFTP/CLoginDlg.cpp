@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include "Afxinet.h"
+#include "MyFTP.h"
+#include "MainFrm.h"
 
 // CLoginDlg 对话框
 
@@ -33,11 +35,15 @@ void CLoginDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT1, IP_str);
 	DDX_Text(pDX, IDC_EDIT2, username_str);
 	DDX_Text(pDX, IDC_EDIT3, pwd_str);
+	DDX_Control(pDX, IDC_BUTTON1, connectStateText);
+	DDX_Control(pDX, IDC_BUTTON2, disconnectBtn);
+	DDX_Control(pDX, IDC_CONNECT_TEXT, cStateText);
 }
 
 
 BEGIN_MESSAGE_MAP(CLoginDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CLoginDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CLoginDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 // 自定义函数区
@@ -69,75 +75,56 @@ void CLoginDlg::reWriteFile(char* filename)
 
 void CLoginDlg::Connect()
 {
-	CInternetSession* pSession;     //定义会话对象指针变量
-	CFtpConnection* pConnection;   //定义连接对象指针变量
-	CFtpFileFind* pFileFind;          //定义文件查询对象指针变量
-	CString strFileName;
-	BOOL bContinue;
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 
-	pConnection = NULL;      //初始化
-	pFileFind = NULL;
+	//清理上次连接的东西
+	if (frame->pFileFind != NULL)
+	{
+		frame->pFileFind->Close();   // 删除文件查询对象
+		delete frame->pFileFind;
+		frame->pFileFind = NULL;
+	}
+	if (frame->pConnection != NULL)
+	{
+		frame->pConnection->Close();
+		delete frame->pConnection;      // 删除FTP连接对象
+		frame->pConnection = NULL;
+	}
+	if (frame->pSession != NULL)
+	{
+		frame->pSession->Close();
+		delete frame->pSession;
+		frame->pSession = NULL;
+	}
 
 	UpdateData(TRUE);      // 获得用户的当前输入（服务器名，用户名和口令）
 
-	pSession = new CInternetSession(          // 创建Internet会话类对象
+	frame->pSession = new CInternetSession(          // 创建Internet会话类对象
 		AfxGetAppName(), 1, PRE_CONFIG_INTERNET_ACCESS);
 
 	try
 	{  // 试图建立与指定FTP服务器的连接
-		pConnection =
-			pSession->GetFtpConnection(IP_str, username_str, pwd_str, (INTERNET_PORT)22U);
+		frame->pConnection =
+			frame->pSession->GetFtpConnection(IP_str, username_str, pwd_str, (INTERNET_PORT)21U);
 	}
 	catch (CInternetException * e) {
 		e->Delete();                          // 无法建立连接，进行错误处理   12002
 
-		pConnection = NULL;
+		frame->pConnection = NULL;
 	}
-
-	if (pConnection != NULL)
+	if (frame->pConnection != NULL)//连接成功
 	{
-		// 创建CFtpFileFind对象，向构造函数传递CFtpConnection对象的指针
-		pFileFind = new CFtpFileFind(pConnection);
-
-		bContinue = pFileFind->FindFile(_T("*"));  // 查找服务器上当前目录的任意文件
-		if (!bContinue)   // 如果一个文件都找不到，结束查找
-		{
-
-			pFileFind->Close();
-			pFileFind = NULL;
-		}
-
-		while (bContinue)  // 找到了第一个文件，继续找其它的文件
-		{
-			bContinue = pFileFind->FindNextFile();
-			strFileName = pFileFind->GetFileName();  // 获得找到的文件的文件名
-			// 如果找到的是否目录，将目录名放在括弧中
-			if (pFileFind->IsDirectory())  strFileName = _T("[") + strFileName + _T("]");
-			// 将找到的文件或目录名显示在列表框中。
-			//m_listFile.AddString(strFileName);
-			//对文件或目录名进行处理
-
-		}
-
-		if (pFileFind != NULL)
-		{
-			pFileFind->Close();   // 结束查询
-			pFileFind = NULL;
-		}
+		cStateText.SetWindowTextW(L"连接成功");
+		connectStateText.EnableWindow(FALSE);
+		disconnectBtn.EnableWindow(TRUE);
+		frame->connected = TRUE;
+		MessageBox(L"连接成功！", L"Success", MB_ICONEXCLAMATION);
 	}
-	delete pFileFind;              // 删除文件查询对象
-	if (pConnection != NULL)
+	else//连接失败
 	{
-		pConnection->Close();
-		delete pConnection;      // 删除FTP连接对象
+		MessageBox(L"连接失败！", L"Error", MB_ICONEXCLAMATION);
 	}
-	delete pSession;             // 删除Internet 会话对象 
 }
-
-
-
-
-
 
 // CLoginDlg 消息处理程序
 
@@ -149,7 +136,7 @@ void CLoginDlg::OnBnClickedButton1()
 	if (IP_str.IsEmpty() || username_str.IsEmpty() || pwd_str.IsEmpty())
 	{
 		//弹出消息框
-
+		MessageBox(L"输入不能为空！", L"警告", MB_ICONEXCLAMATION);
 		return;
 	}
 	reWriteFile("./login.ini");
@@ -214,4 +201,33 @@ BOOL CLoginDlg::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
+}
+
+//点击”断开连接“执行
+void CLoginDlg::OnBnClickedButton2()
+{
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+	if (frame->pFileFind)
+	{
+		frame->pFileFind->Close();
+		delete frame->pFileFind;
+		frame->pFileFind = NULL;
+	}
+	if (frame->pConnection != NULL)
+	{
+		frame->pConnection->Close();
+		delete frame->pConnection;      // 删除FTP连接对象
+		frame->pConnection = NULL;
+	}
+	if (frame->pSession != NULL)
+	{
+		frame->pSession->Close();
+		delete frame->pSession;
+		frame->pSession = NULL;
+	}
+	disconnectBtn.EnableWindow(FALSE);
+	connectStateText.EnableWindow(TRUE);
+	cStateText.SetWindowTextW(L"未连接");
+	frame->connected = FALSE;
+	MessageBox(L"成功断开连接！", L"OK", MB_ICONEXCLAMATION);
 }

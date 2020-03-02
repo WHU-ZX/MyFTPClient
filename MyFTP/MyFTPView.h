@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "MyFTPDoc.h"
 
 class CMyFTPView : public CFormView
 {
@@ -22,6 +22,8 @@ public:
 
 // 操作
 public:
+	BOOL Download(CString strSName, CString strDName, CString ip, CString username, CString pwd);
+	BOOL Upload(CString strSName, CString strDName, CString ip, CString username, CString pwd);
 
 // 重写
 public:
@@ -47,6 +49,11 @@ protected:
 // 生成的消息映射函数
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	CTreeCtrl m_tree;
+private:
+	CImageList list;
+	void initTree();
 };
 
 #ifndef _DEBUG  // MyFTPView.cpp 中的调试版本

@@ -35,4 +35,10 @@ private:
 	virtual void OnOK();
 public:
 	virtual BOOL OnInitDialog();
+private:
+	CButton connectStateText;
+public:
+	CButton disconnectBtn;
+	CStatic cStateText;
+	afx_msg void OnBnClickedButton2();
 };

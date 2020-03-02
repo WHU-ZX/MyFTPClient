@@ -215,6 +215,8 @@
     <None Include="res\MyFTP.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\filefolder_16_16.ico" />
+    <Image Include="res\file_16_16.ico" />
     <Image Include="res\MyFTP.ico" />
     <Image Include="res\MyFTPDoc.ico" />
     <Image Include="res\tb.ico" />

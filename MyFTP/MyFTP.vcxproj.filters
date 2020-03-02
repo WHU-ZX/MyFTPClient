@@ -89,5 +89,11 @@
     <Image Include="res\tb.ico">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="res\filefolder_16_16.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\file_16_16.ico">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
