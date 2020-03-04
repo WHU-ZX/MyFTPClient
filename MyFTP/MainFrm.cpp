@@ -125,7 +125,12 @@ void CMainFrame::OnClickConnect()
 //点击“下载”后调用
 void CMainFrame::OnClickDownload()
 {
-	// TODO: 在此添加命令处理程序代码
+	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	HTREEITEM item = pView->m_tree.GetSelectedItem();
+	CString str = pView->m_tree.GetItemText(item);
+	//判断str是否是文件夹
+
+	
 }
 
 //点击“上传”后调用
@@ -191,15 +196,19 @@ void CMainFrame::OnClickSearch()
 	{
 		bContinue = this->pFileFind->FindNextFile();
 		strFileName = this->pFileFind->GetFileName();  // 获得找到的文件的文件名
+		//std::string strName = CT2A(strFileName.GetBuffer());
 		// 如果找到的是否目录，将目录名放在括弧中
 		if (this->pFileFind->IsDirectory())
 		{
-			strFileName = _T("[") + strFileName + _T("]");
+			
+			//strFileName = _T("[") + strFileName + _T("]");
 			pView->m_tree.InsertItem(strFileName, 0, 0, NULL);
+			pView->isFolderMap[strFileName] = true;
 		}
 		else
 		{
 			pView->m_tree.InsertItem(strFileName, 1, 1, NULL);
+			pView->isFolderMap[strFileName] = false;
 		}
 		// 将找到的文件或目录名显示在列表框中。
 		//m_listFile.AddString(strFileName);

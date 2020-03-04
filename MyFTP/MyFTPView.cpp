@@ -13,6 +13,7 @@
 #include "MyFTPDoc.h"
 #include "MyFTPView.h"
 #include "Afxinet.h"
+#include "MainFrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -28,6 +29,7 @@ BEGIN_MESSAGE_MAP(CMyFTPView, CFormView)
 	ON_COMMAND(ID_FILE_PRINT, &CFormView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CFormView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CFormView::OnFilePrintPreview)
+	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CMyFTPView::OnNMDblclkTree1)
 END_MESSAGE_MAP()
 
 // CMyFTPView 构造/析构
@@ -57,9 +59,6 @@ BOOL CMyFTPView::PreCreateWindow(CREATESTRUCT& cs)
 	// TODO: 在此处通过修改
 	//  CREATESTRUCT cs 来修改窗口类或样式
 
-	
-
-
 	return CFormView::PreCreateWindow(cs);
 }
 
@@ -73,103 +72,51 @@ void CMyFTPView::OnInitialUpdate()
 }
 
 //执行实际的下载任务
-BOOL CMyFTPView::Download(CString strSName, CString strDName, CString ip, CString username, CString pwd)
+BOOL CMyFTPView::Download(CString strSName, CString strDName)
 {
-	CInternetSession* pSession;      //定义会话对象变量指针
-	CFtpConnection* pConnection;    //定义连接对象变量指针
-
-	pConnection = NULL;
-
-	//创建Internet会话对象
-	pSession = new CInternetSession(AfxGetAppName(), 1,
-		PRE_CONFIG_INTERNET_ACCESS);
-
-	try
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+	if (!frame->connected)
 	{
-		//建立FTP连接
-		pConnection = pSession->GetFtpConnection(ip,
-			username, pwd);
+		MessageBox(L"请连接到服务器！", L"Error", MB_ICONEXCLAMATION);
+		return FALSE;
 	}
-	catch (CInternetException * e)
+	if (frame->pSession == NULL || frame->pConnection == NULL)//需要重新连接
 	{
-		//错误处理
-		e->Delete();
-		pConnection = NULL;
+		MessageBox(L"连接出错，请断开后重连！", L"Error", MB_ICONEXCLAMATION);
 		return FALSE;
 	}
 
-	if (pConnection != NULL)
+	//下载文件
+	if (!frame->pConnection->GetFile(strSName, strDName))
 	{
-		//下载文件
-		if (!pConnection->GetFile(strSName, strDName))
-		{
-			//下载文件错误
-			pConnection->Close();
-			delete pConnection;
-			delete pSession;
-			return FALSE;
-		}
+		//下载文件错误
+		MessageBox(L"下载文件错误！", L"Error", MB_ICONEXCLAMATION);
+		return FALSE;
 	}
-
-	//清除对象
-	if (pConnection != NULL)
-	{
-		pConnection->Close();
-		delete pConnection;
-	}
-	delete pSession;
-
 	return TRUE;
 }
 
 //执行实际的上传任务
-BOOL CMyFTPView::Upload(CString strSName, CString strDName, CString ip, CString username, CString pwd)
+BOOL CMyFTPView::Upload(CString strSName, CString strDName)
 {
-	CInternetSession* pSession;
-	CFtpConnection* pConnection;
-
-	pConnection = NULL;
-
-	//创建Internet会话
-	pSession = new CInternetSession(AfxGetAppName(), 1,
-		PRE_CONFIG_INTERNET_ACCESS);
-
-	try
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+	if (!frame->connected)
 	{
-		//建立FTP连接
-		pConnection = pSession->GetFtpConnection(ip,
-			username, pwd);
-	}
-	catch (CInternetException * e)
-	{
-		//错误处理
-		e->Delete();
-		pConnection = NULL;
+		MessageBox(L"请连接到服务器！", L"Error", MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-
-	if (pConnection != NULL)
+	if (frame->pSession == NULL || frame->pConnection == NULL)//需要重新连接
 	{
-		//上传文件
-		if (!pConnection->PutFile(strSName, strDName))
-		{
-			//上传文件错误
-			pConnection->Close();
-			delete pConnection;
-			delete pSession;
-			return FALSE;
-		}
+		MessageBox(L"连接出错，请断开后重连！", L"Error", MB_ICONEXCLAMATION);
+		return FALSE;
 	}
-
-	//清除对象
-	if (pConnection != NULL)
+	//上传文件
+	if (!frame->pConnection->PutFile(strSName, strDName))
 	{
-		pConnection->Close();
-		delete pConnection;
+		//上传文件错误
+		MessageBox(L"上传文件错误！", L"Error", MB_ICONEXCLAMATION);
+		return FALSE;
 	}
-
-	delete pSession;
-
 	return TRUE;
 }
 
@@ -238,3 +185,28 @@ CMyFTPDoc* CMyFTPView::GetDocument() const // 非调试版本是内联的
 // CMyFTPView 消息处理程序
 
 
+
+//双击树控件的item时调用的函数
+void CMyFTPView::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	
+	*pResult = 0;
+	HTREEITEM item = m_tree.GetSelectedItem();
+	CString str = m_tree.GetItemText(item);
+	bool isFileFolder = isFolderMap[str];
+	if (str == L"...")//点击了上级目录
+	{
+		MessageBox(L"双击上级目录", L"Test", MB_ICONEXCLAMATION);
+	}
+	else if (isFileFolder)//是文件夹
+	{
+
+
+
+		MessageBox(L"双击了文件夹" + str, L"Test", MB_ICONEXCLAMATION);
+	}
+	else
+	{
+		MessageBox(L"双击了文件" + str, L"Test", MB_ICONEXCLAMATION);
+	}
+}

@@ -4,6 +4,7 @@
 
 #pragma once
 #include "MyFTPDoc.h"
+#include <map>
 
 class CMyFTPView : public CFormView
 {
@@ -22,8 +23,8 @@ public:
 
 // 操作
 public:
-	BOOL Download(CString strSName, CString strDName, CString ip, CString username, CString pwd);
-	BOOL Upload(CString strSName, CString strDName, CString ip, CString username, CString pwd);
+	BOOL Download(CString strSName, CString strDName);
+	BOOL Upload(CString strSName, CString strDName);
 
 // 重写
 public:
@@ -51,9 +52,12 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CTreeCtrl m_tree;
+	std::map<CString, bool> isFolderMap = std::map<CString, bool>();
 private:
 	CImageList list;
 	void initTree();
+public:
+	afx_msg void OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult);
 };
 
 #ifndef _DEBUG  // MyFTPView.cpp 中的调试版本
