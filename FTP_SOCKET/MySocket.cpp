@@ -52,7 +52,7 @@ int MySocket::Send(char* send_buf, int len, int flags)
 
 bool MySocket::Disconnect()
 {
-
+	closesocket(sock);
 	return true;
 }
 

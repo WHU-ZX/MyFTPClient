@@ -75,24 +75,7 @@ void CMyFTPView::OnInitialUpdate()
 BOOL CMyFTPView::Download(CString strSName, CString strDName)
 {
 	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-	if (!frame->connected)
-	{
-		MessageBox(L"请连接到服务器！", L"Error", MB_ICONEXCLAMATION);
-		return FALSE;
-	}
-	if (frame->pSession == NULL || frame->pConnection == NULL)//需要重新连接
-	{
-		MessageBox(L"连接出错，请断开后重连！", L"Error", MB_ICONEXCLAMATION);
-		return FALSE;
-	}
-
-	//下载文件
-	if (!frame->pConnection->GetFile(strSName, strDName))
-	{
-		//下载文件错误
-		MessageBox(L"下载文件错误！", L"Error", MB_ICONEXCLAMATION);
-		return FALSE;
-	}
+	
 	return TRUE;
 }
 
@@ -105,18 +88,7 @@ BOOL CMyFTPView::Upload(CString strSName, CString strDName)
 		MessageBox(L"请连接到服务器！", L"Error", MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-	if (frame->pSession == NULL || frame->pConnection == NULL)//需要重新连接
-	{
-		MessageBox(L"连接出错，请断开后重连！", L"Error", MB_ICONEXCLAMATION);
-		return FALSE;
-	}
-	//上传文件
-	if (!frame->pConnection->PutFile(strSName, strDName))
-	{
-		//上传文件错误
-		MessageBox(L"上传文件错误！", L"Error", MB_ICONEXCLAMATION);
-		return FALSE;
-	}
+	
 	return TRUE;
 }
 

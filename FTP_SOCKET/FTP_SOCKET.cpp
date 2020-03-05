@@ -16,10 +16,12 @@ int main()
 	{
 		client = new FTPClient(host, port);
 		client->Login(usr, pwd);
-		client->EnterPasvMode();
-		client->getFilesOfCurWorkDir();
+		//client->EnterPasvMode();
+		std::vector<FileInfo> infos = client->getFilesOfCurWorkDir();
+		std::vector<FileInfo> infos2 = client->getFilesOfCurWorkDir();
+		client->deleteFileAtCurDir("test.txt");
 		//std::string dir = client->getCurWorkingDir();
-		client->test();
+		//client->test();
 	}
 	catch (FTPException e)
 	{

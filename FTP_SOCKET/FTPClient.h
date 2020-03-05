@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include <vector>
 #include "FileInfo.h"
+#include "RetInfo.h"
 
 class FTPClient
 {
@@ -13,7 +14,7 @@ public:
     bool Login(const std::string& usr, const std::string& pwd);
     //进入被动模式
     bool EnterPasvMode();
-    //更新文件列表
+    //更新文件列表 ------此功能应该在前端完成，前端点击刷新时，重新获取当前路径的文件列表并显示出来
     void UpdateFileList();
     //获取指定文件信息
     File GetFileInfo(const std::string& f);
@@ -32,8 +33,16 @@ public:
     void WSAStart();
 
     std::vector<FileInfo> getFilesOfCurWorkDir();//获得当前工作路径下的文件信息,调用此函数前必须保证进入了被动模式
-
     std::string getCurWorkingDir();
+
+    bool createFolderAtWorkingDir(std::string folderName);//在当前工作区创建一个文件夹
+    bool createFileAtWorkingDir(std::string fileName);//在当前工作区创建一个文件
+    bool returnToParentDir();//将工作路径设为上一工作目录
+    bool deleteFileAtCurDir(std::string fileName);//删除当前工作区的一个文件
+    bool deleteFolderAtCurDir(std::string folderName);//删除当前工作区的一个文件夹
+    bool enterFolder(std::string folderName);//进入某一文件夹
+
+    void disConnect();
 
     void test();
 private:
@@ -46,6 +55,7 @@ private:
     std::string host;
     std::string user = "";
     std::string pwd = "";
+    std::string curDir = "";
     int port;//控制端口?
     //
     void GetFileList();
@@ -53,9 +63,17 @@ private:
     bool EnterBinaryMode(); //进入二进制模式
 
     std::vector<std::string> getFileInfoStrs(std::string listRetStr);
+    std::vector<std::string> divideRetStrs(std::string retStr);
+
+private:
+    std::string getFileNameWithTheRetOfPWD(std::string pwdRetStr, int len) const;
+    std::string getIpByPasvRet(std::string pasvRetStr, int len)const;//根据Pasv命令后服务器返回的字符串生成其提供的IP
+    int getPortByPasvRet(std::string pasvRetStr, int len)const;//根据Pasv命令后服务器返回的字符串生成其提供的port
+    int str2UInt(std::string str)const;
+    RetInfo getRetInfo(std::string str);
+    RetInfo getFirstRet(std::string str);
+    RetInfo getLastRet(std::string str);
+    bool containsCode(std::string str, std::string code);
+    bool isDigit(char c)const;
 };
 
-std::string getFileNameWithTheRetOfPWD(std::string pwdRetStr,int len);
-std::string getIpByPasvRet(std::string pasvRetStr, int len);//根据Pasv命令后服务器返回的字符串生成其提供的IP
-int getPortByPasvRet(std::string pasvRetStr, int len);//根据Pasv命令后服务器返回的字符串生成其提供的port
-int str2UInt(std::string str);

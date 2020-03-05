@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "MyFTPView.h"
+#include "../FTP_SOCKET/FTPException.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -157,70 +158,48 @@ void CMainFrame::OnClickNewFile()
 	// TODO: 在此添加命令处理程序代码
 }
 
-//点击“查询目录”后调用
-void CMainFrame::OnClickSearch()
+void CMainFrame::updateFileDir()
 {
-	if (connected == FALSE)
-	{
-		MessageBox(L"请先连接到服务器！", L"Error", MB_ICONEXCLAMATION);
-		return;
-	}
-	if (pSession == NULL || pConnection == NULL)
-	{
-		MessageBox(L"连接出错，请断开后重新连接！", L"Error", MB_ICONEXCLAMATION);
-		return;
-	}
-	if (pFileFind != NULL)
-	{
-		pFileFind->Close();
-		delete pFileFind;
-		pFileFind = NULL;
-	}
-	//正式处理事务
-	CString strFileName;
-	BOOL bContinue;
-	// 创建CFtpFileFind对象，向构造函数传递CFtpConnection对象的指针
-	pFileFind = new CFtpFileFind(this->pConnection);
-	bContinue = this->pFileFind->FindFile(_T("*"));  // 查找服务器上当前目录的任意文件
-
-	if (!bContinue)   // 如果一个文件都找不到，结束查找
-	{
-
-		this->pFileFind->Close();
-		this->pFileFind = NULL;
-	}
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	//pView->m_tree.
+	pView->m_tree.DeleteAllItems();
 	pView->m_tree.InsertItem(L"...", 0, 0, NULL);
+	
+	std::vector<FileInfo> fileInfo = client->getFilesOfCurWorkDir();
 
-	while (bContinue)  // 找到了第一个文件，继续找其它的文件
+	for (int i = 0; i < fileInfo.size(); i++)
 	{
-		bContinue = this->pFileFind->FindNextFile();
-		strFileName = this->pFileFind->GetFileName();  // 获得找到的文件的文件名
-		//std::string strName = CT2A(strFileName.GetBuffer());
-		// 如果找到的是否目录，将目录名放在括弧中
-		if (this->pFileFind->IsDirectory())
+		CString cStrFileName(fileInfo[i].getFileName().c_str());
+
+		if (fileInfo[i].isFolder())//是文件
 		{
-			
-			//strFileName = _T("[") + strFileName + _T("]");
-			pView->m_tree.InsertItem(strFileName, 0, 0, NULL);
-			pView->isFolderMap[strFileName] = true;
+			pView->m_tree.InsertItem(cStrFileName, 0, 0, NULL);
+			pView->isFolderMap[cStrFileName] = true;
 		}
 		else
 		{
-			pView->m_tree.InsertItem(strFileName, 1, 1, NULL);
-			pView->isFolderMap[strFileName] = false;
+			pView->m_tree.InsertItem(cStrFileName, 1, 1, NULL);
+			pView->isFolderMap[cStrFileName] = false;
 		}
-		// 将找到的文件或目录名显示在列表框中。
-		//m_listFile.AddString(strFileName);
-		//对文件或目录名进行处理
-
 	}
+}
 
-	if (this->pFileFind != NULL)
+//点击“查询目录”后调用
+void CMainFrame::OnClickSearch()
+{
+	/*if (!connected)
 	{
-		this->pFileFind->Close();   // 结束查询
-		delete this->pFileFind;
-		this->pFileFind = NULL;
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}*/
+	try
+	{
+		loginDlg.Connect();
+		updateFileDir();
 	}
-
+	catch (FTPException e)
+	{
+		CString cStr = CString(e.printInfo().c_str());
+		MessageBox(cStr, L"Error", MB_ICONEXCLAMATION);
+	}
 }

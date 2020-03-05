@@ -221,6 +221,11 @@
     <Image Include="res\MyFTPDoc.ico" />
     <Image Include="res\tb.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FTP_SOCKET\FTP_SOCKET.vcxproj">
+      <Project>{0962e117-0c6d-4ba8-98df-c2ec2ccc9d1d}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

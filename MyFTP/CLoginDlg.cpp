@@ -10,7 +10,9 @@
 #include "Afxinet.h"
 #include "MyFTP.h"
 #include "MainFrm.h"
+#include "../FTP_SOCKET/FTPException.h"
 
+#define FTP_CTL_PORT (21)
 // CLoginDlg 对话框
 
 IMPLEMENT_DYNAMIC(CLoginDlg, CDialogEx)
@@ -76,53 +78,38 @@ void CLoginDlg::reWriteFile(char* filename)
 void CLoginDlg::Connect()
 {
 	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-
-	//清理上次连接的东西
-	if (frame->pFileFind != NULL)
-	{
-		frame->pFileFind->Close();   // 删除文件查询对象
-		delete frame->pFileFind;
-		frame->pFileFind = NULL;
-	}
-	if (frame->pConnection != NULL)
-	{
-		frame->pConnection->Close();
-		delete frame->pConnection;      // 删除FTP连接对象
-		frame->pConnection = NULL;
-	}
-	if (frame->pSession != NULL)
-	{
-		frame->pSession->Close();
-		delete frame->pSession;
-		frame->pSession = NULL;
-	}
-
 	UpdateData(TRUE);      // 获得用户的当前输入（服务器名，用户名和口令）
-
-	frame->pSession = new CInternetSession(          // 创建Internet会话类对象
-		AfxGetAppName(), 1, PRE_CONFIG_INTERNET_ACCESS);
-
+	int port = FTP_CTL_PORT;
+	std::string host = CT2A(IP_str.GetBuffer());
+	std::string username = CT2A(username_str.GetBuffer());
+	std::string pwd = CT2A(pwd_str.GetBuffer());
 	try
-	{  // 试图建立与指定FTP服务器的连接
-		frame->pConnection =
-			frame->pSession->GetFtpConnection(IP_str, username_str, pwd_str, (INTERNET_PORT)21U);
-	}
-	catch (CInternetException * e) {
-		e->Delete();                          // 无法建立连接，进行错误处理   12002
-
-		frame->pConnection = NULL;
-	}
-	if (frame->pConnection != NULL)//连接成功
 	{
-		cStateText.SetWindowTextW(L"连接成功");
-		connectStateText.EnableWindow(FALSE);
+		if (frame->client == nullptr)//曾今没有连接过
+		{
+			frame->client = new FTPClient(host,port);
+			frame->client->Login(username, pwd);
+			frame->client->EnterPasvMode();
+		}
+		else
+		{
+			//清理上次连接的东西
+			delete frame->client;
+			//创建新Client
+			frame->client = new FTPClient(host, port);
+			frame->client->Login(username, pwd);
+			frame->client->EnterPasvMode();
+		}
+		frame->connected = true;
+		//MessageBox(L"连接成功!", L"Success", MB_ICONEXCLAMATION);
+		cStateText.SetWindowTextW(L"已连接");
 		disconnectBtn.EnableWindow(TRUE);
-		frame->connected = TRUE;
-		MessageBox(L"连接成功！", L"Success", MB_ICONEXCLAMATION);
+		connectStateText.EnableWindow(FALSE);
 	}
-	else//连接失败
+	catch (FTPException e)
 	{
-		MessageBox(L"连接失败！", L"Error", MB_ICONEXCLAMATION);
+		CString cStr = CString(e.printInfo().c_str());
+		MessageBox(cStr, L"Error", MB_ICONEXCLAMATION);
 	}
 }
 
@@ -207,24 +194,8 @@ BOOL CLoginDlg::OnInitDialog()
 void CLoginDlg::OnBnClickedButton2()
 {
 	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-	if (frame->pFileFind)
-	{
-		frame->pFileFind->Close();
-		delete frame->pFileFind;
-		frame->pFileFind = NULL;
-	}
-	if (frame->pConnection != NULL)
-	{
-		frame->pConnection->Close();
-		delete frame->pConnection;      // 删除FTP连接对象
-		frame->pConnection = NULL;
-	}
-	if (frame->pSession != NULL)
-	{
-		frame->pSession->Close();
-		delete frame->pSession;
-		frame->pSession = NULL;
-	}
+	
+	frame->client->disConnect();
 	disconnectBtn.EnableWindow(FALSE);
 	connectStateText.EnableWindow(TRUE);
 	cStateText.SetWindowTextW(L"未连接");

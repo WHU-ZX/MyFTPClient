@@ -1,7 +1,7 @@
 ﻿
 // MainFrm.h: CMainFrame 类的接口
 //
-
+#include "../FTP_SOCKET/FTPClient.h"
 #pragma once
 #include "CLoginDlg.h"
 #include "Afxinet.h"
@@ -42,6 +42,8 @@ protected:
 private:
 	CLoginDlg loginDlg;
 	std::string readFileIntoString(char* filename);
+
+
 public:
 	afx_msg void OnClickConnect();
 	afx_msg void OnClickDownload();
@@ -51,9 +53,12 @@ public:
 	afx_msg void OnClickNewFile();
 
 public:
-	CInternetSession* pSession = NULL;     //定义会话对象指针变量
-	CFtpConnection* pConnection= NULL;   //定义连接对象指针变量
-	CFtpFileFind* pFileFind = NULL;          //定义文件查询对象指针变量
+	//CInternetSession* pSession = NULL;     //定义会话对象指针变量
+	//CFtpConnection* pConnection= NULL;   //定义连接对象指针变量
+	//CFtpFileFind* pFileFind = NULL;          //定义文件查询对象指针变量
+
+	void updateFileDir();
+	FTPClient* client = nullptr;
 	afx_msg void OnClickSearch();
 	BOOL connected = FALSE;
 };

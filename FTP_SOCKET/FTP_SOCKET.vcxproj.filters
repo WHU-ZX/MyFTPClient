@@ -39,6 +39,9 @@
     <ClCompile Include="FileInfo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="RetInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MySocket.h">
@@ -60,6 +63,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="FileInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RetInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

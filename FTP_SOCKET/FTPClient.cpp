@@ -29,12 +29,12 @@ FTPClient::FTPClient(const std::string& host, int port)//创建MySokcet并将其连接
 
 	if (!sock_ctl.Create())
 	{
-		CleanUp();
+		//CleanUp();
 		throw FTPException(ExType::CreateSocketFail);
 	}
 	if (!sock_ctl.Connect())
 	{
-		CleanUp();
+		//CleanUp();
 		throw FTPException(ExType::ConnectFail);
 	}
 
@@ -47,20 +47,21 @@ FTPClient::FTPClient(const std::string& host, int port)//创建MySokcet并将其连接
 		std::string first3Str = str.substr(0, 3);
 		if (first3Str != "220")//没有连接成功
 		{
-			CleanUp();
+			//CleanUp();
 			throw FTPException(ExType::ConnectFail);
 		}
 	}
 	else
 	{
-		CleanUp();
+		//CleanUp();
 		throw FTPException(ExType::ConnectFail);
 	}
+	//curDir = getCurWorkingDir();
 }
 
 FTPClient::~FTPClient()//要进行关闭连接、关闭库？等操作
 {
-
+	CleanUp();
 }
 
 void FTPClient::WSAStart()
@@ -73,7 +74,7 @@ void FTPClient::WSAStart()
 		int err = WSAStartup(wVersionRequested, &wsaData);
 		if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 0 || err != 0)
 		{
-			CleanUp();
+			//CleanUp();
 			throw FTPException(ExType::StartUpFail);
 		}
 		else
@@ -115,8 +116,31 @@ std::vector<std::string> FTPClient::getFileInfoStrs(std::string listRetStr)
 	return ret;
 }
 
+std::vector<std::string> FTPClient::divideRetStrs(std::string retStr)
+{
+	std::vector<std::string> ret;
+	std::string tStr;
+	int len = retStr.size();
+	for (int i = 0; i < len; i++)
+	{
+		if (retStr[i] == '\r')//尾部
+		{
+			i++;
+			ret.push_back(tStr);
+			tStr = "";
+		}
+		else
+		{
+			tStr += retStr[i];
+		}
+	}
+	return ret;
+}
+
 std::vector<FileInfo> FTPClient::getFilesOfCurWorkDir()
 {
+	std::string curDir = getCurWorkingDir();
+	EnterPasvMode();
 	char buf[MAX_BUF];
 	memset(buf, 0, MAX_BUF);
 	sprintf(buf, "LIST\r\n");//获取当前工作目录下的文件列表
@@ -126,9 +150,16 @@ std::vector<FileInfo> FTPClient::getFilesOfCurWorkDir()
 	std::string str = buf;
 	std::cout << str;
 
-	if (ret < 3 || str.substr(0, 3) != "150")
-	{//抛出异常
-		throw FTPException(ExType::GetFileInfoFail);
+	if (ret < 3)
+	{
+		throw FTPException(ExType::OtherFails,str);
+	}
+	else
+	{
+		if (!containsCode(str,"150"))
+		{
+			throw FTPException(ExType::GetFileInfoFail,str);
+		}
 	}
 	std::string fileInfo = "";
 	memset(buf, 0, MAX_BUF);
@@ -141,7 +172,7 @@ std::vector<FileInfo> FTPClient::getFilesOfCurWorkDir()
 	std::vector<std::string> fileInfos = getFileInfoStrs(fileInfo);
 	std::vector<FileInfo> retVec;
 	int len = fileInfos.size();
-	std::string curDir = getCurWorkingDir();
+	
 	for (int i = 0; i < len; i++)
 	{
 		retVec.push_back(FileInfo(fileInfos[i],curDir));
@@ -158,9 +189,13 @@ std::string FTPClient::getCurWorkingDir()
 	memset(buf, 0, MAX_BUF);
 	ret = sock_ctl.Receive(buf, MAX_BUF, 0);
 	std::string str = buf;
-	if (ret < 3 || str.substr(0, 3) != "257")
+	if (ret < 3)
 	{
-		throw FTPException(ExType::GetCurDirFail);
+		throw FTPException(ExType::OtherFails,str);
+	}
+	else if (!containsCode(str, "257"))
+	{
+		throw FTPException(ExType::GetCurDirFail,str);
 	}
 	return getFileNameWithTheRetOfPWD(str, str.size());
 }
@@ -169,49 +204,41 @@ bool FTPClient::Login(const std::string& usr, const std::string& pwd)
 {
 	char buf[MAX_BUF];
 	sprintf(buf, "USER %s\r\n", usr.c_str());
-	std::string str, codeStr;
+	std::string str;
 
 	int ret = sock_ctl.Send(buf, strlen(buf), 0);
+	memset(buf, 0, MAX_BUF);
 	ret = sock_ctl.Receive(buf, MAX_BUF, 0);
-	if (ret >= 3)
+	str = buf;
+	if (!containsCode(str, "331"))
 	{
-		str = buf;
-		codeStr = str.substr(0, 3);
-		if (codeStr != "331")//报错
-		{
-			CleanUp();
-			throw FTPException(ExType::LoginFail);
-		}
-	}
-	else
-	{
-		CleanUp();
 		throw FTPException(ExType::LoginFail);
 	}
+	
 	sprintf(buf, "PASS %s\r\n", pwd.c_str());
 	ret = sock_ctl.Send(buf, strlen(buf), 0);
+	memset(buf, 0, MAX_BUF);
 	ret = sock_ctl.Receive(buf, MAX_BUF, 0);
 	if (ret >= 3)
 	{
 		str = buf;
-		codeStr = str.substr(0, 3);
-		if (codeStr != "230")//报错
+		if (!containsCode(str,"230"))//报错
 		{
-			if (codeStr == "530")
+			if (containsCode(str, "530"))
 			{
-				CleanUp();
+				//CleanUp();
 				throw FTPException(ExType::UsrOrPwdWrong);
 			}
 			else
 			{
-				CleanUp();
+				//CleanUp();
 				throw FTPException(ExType::LoginFail);
 			}
 		}
 	}
 	else
 	{
-		CleanUp();
+		//CleanUp();
 		throw FTPException(ExType::LoginFail);
 	}
 	return true;
@@ -247,11 +274,6 @@ void FTPClient::test()
 		subStr = str.substr(0, ret);
 		myStr += subStr;
 		std::cout << subStr;
-		for (int i = 0; i < myStr.size(); i++)
-		{
-			char c = myStr[i];
-			std::cout << c;
-		}
 		memset(buf, 0, MAX_BUF);
 	}
 
@@ -262,8 +284,83 @@ void FTPClient::test()
 	subStr = str.substr(0, ret);
 	myStr += subStr;
 	std::cout << subStr;
+}
 
-	return;
+bool FTPClient::createFolderAtWorkingDir(std::string folderName)//可能会产生文件夹名不符合规范的异常
+{
+	return true;
+}
+
+bool FTPClient::createFileAtWorkingDir(std::string fileName)//可能会产生文件名不符合规范的异常
+{
+	return true;
+}
+
+bool FTPClient::returnToParentDir()//若当前为最上层目录，应抛出一个异常
+{
+	return true;
+}
+
+bool FTPClient::deleteFileAtCurDir(std::string fileName)//删除当前工作区的一个文件-----
+{
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	while (sock_ctl.Receive(buf, MAX_BUF, 0) != 0)
+	{
+		memset(buf, 0, MAX_BUF);
+	}
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "DELE %s\r\n",fileName.c_str());
+
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+
+	std::string str = buf;
+	std::cout << str;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else if (!containsCode(str, "250"))
+	{
+		std::string tStr = str.substr(0, 3);
+		if (containsCode(str, "550") || containsCode(str, "450"))//文件不可用
+		{
+			throw FTPException(ExType::FileAccessFail);
+		}
+		else//其他错误
+		{
+			throw FTPException(ExType::OtherFails);
+		}
+	}
+	return true;
+}
+
+bool FTPClient::deleteFolderAtCurDir(std::string folderName)//删除当前工作区的一个文件夹
+{
+	return true;
+}
+
+bool FTPClient::enterFolder(std::string folderName)//进入某一文件夹
+{
+
+
+
+	return true;
+}
+
+void FTPClient::disConnect()
+{
+	if (sock_ctl.Connected())
+	{
+		sock_ctl.Disconnect();
+	}
+	if (sock_data.Connected())
+	{
+		sock_data.Disconnect();
+	}
 }
 
 //进入被动模式
@@ -289,6 +386,7 @@ bool FTPClient::EnterPasvMode()
 	}
 
 	//sock_data与新开的端口进行连接
+	sock_data.Disconnect();
 	sock_data.SetAddrInfo(host, port);
 	if (!sock_data.Create())
 	{
@@ -304,20 +402,10 @@ bool FTPClient::EnterPasvMode()
 	int port_data = sock_data.getSocketLoaclPort();
 	std::cout << "control port:" << port_ctl << std::endl;
 	std::cout << "data port:" << port_data << std::endl;
-	/*
-	int code = sock_data.Receive(buf, MAX_BUF, 0);
-	str = buf;
-	subStr = str.substr(0, code);
-	std::cout << subStr;*/
 
 	return true;
 }
 
-//更新文件列表
-void FTPClient::UpdateFileList()
-{
-
-}
 
 //获取指定文件信息
 //File FTPClient::GetFileInfo(const std::string& f)
@@ -376,7 +464,7 @@ bool FTPClient::EnterBinaryMode()//进入二进制模式
 	return true;
 }
 
-std::string getIpByPasvRet(std::string pasvRetStr, int len)
+std::string FTPClient::getIpByPasvRet(std::string pasvRetStr, int len)const
 {
 	int i = 0;
 	for (i = 0; i < len; i++)
@@ -421,7 +509,7 @@ std::string getIpByPasvRet(std::string pasvRetStr, int len)
 	return ret;
 }
 
-int getPortByPasvRet(std::string pasvRetStr, int len)
+int FTPClient::getPortByPasvRet(std::string pasvRetStr, int len)const
 {
 	int i = 0;
 	for (i = 0; i < len; i++)
@@ -466,7 +554,7 @@ int getPortByPasvRet(std::string pasvRetStr, int len)
 	}
 }
 
-std::string getFileNameWithTheRetOfPWD(std::string pwdRetStr,int len)
+std::string FTPClient::getFileNameWithTheRetOfPWD(std::string pwdRetStr,int len)const
 {
 	std::string ret = "";
 	bool in = false;
@@ -494,7 +582,7 @@ std::string getFileNameWithTheRetOfPWD(std::string pwdRetStr,int len)
 	return ret;
 }
 
-int str2UInt(std::string str)
+int FTPClient::str2UInt(std::string str)const
 {
 	if (str.empty()) return -1;
 	int ret = 0;
@@ -504,4 +592,62 @@ int str2UInt(std::string str)
 		ret += str[i] - '0';
 	}
 	return ret;
+}
+
+bool FTPClient::isDigit(char c)const
+{
+	return c >= '0' && c <= '9';
+}
+
+RetInfo FTPClient::getRetInfo(std::string str)
+{
+	std::string code = "", otherInfo = "";
+	int i = 0;
+	while (i < str.size() && isDigit(str[i]))
+	{
+		code += str[i];
+		i++;
+	}
+	while (i < str.size() && str[i] == ' ') i++;
+	while (i < str.size() && str[i] != '\r')
+	{
+		otherInfo += str[i];
+		i++;
+	}
+	return RetInfo(code, otherInfo);
+}
+
+RetInfo FTPClient::getFirstRet(std::string str)
+{
+	std::vector<std::string> strs = divideRetStrs(str);
+	if (strs.empty()) return getRetInfo("");
+	return getRetInfo(strs[0]);
+}
+
+RetInfo FTPClient::getLastRet(std::string str)
+{
+	std::vector<std::string> strs = divideRetStrs(str);
+	if (strs.empty()) return getRetInfo("");
+	return getRetInfo(strs[strs.size() - 1]);
+}
+
+bool FTPClient::containsCode(std::string str, std::string code)
+{
+	if (str.size() < code.size()) return false;
+	int index = str.find(code);
+	if (index < 0)
+		return false;
+	else if (index == 0)
+		return true;
+	else 
+	{
+		if (index < 2) return false;
+		else 
+		{
+			if (str[index - 2] == '\r' && str[index - 1] == '\n')
+				return true;
+			else
+				return false;
+		}
+	}
 }
