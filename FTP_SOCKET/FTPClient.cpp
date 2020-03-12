@@ -197,7 +197,8 @@ std::string FTPClient::getCurWorkingDir()
 	{
 		throw FTPException(ExType::GetCurDirFail,str);
 	}
-	return getFileNameWithTheRetOfPWD(str, str.size());
+	this->curDir = getFileNameWithTheRetOfPWD(str, str.size());
+	return this->curDir;
 }
 
 bool FTPClient::Login(const std::string& usr, const std::string& pwd)
@@ -296,19 +297,83 @@ bool FTPClient::createFileAtWorkingDir(std::string fileName)//可能会产生文件名不
 	return true;
 }
 
-bool FTPClient::returnToParentDir()//若当前为最上层目录，应抛出一个异常
+bool FTPClient::returnToParentDir()//若当前为最上层目录，应抛出一个异常     调用之后还需要改变curDir，目前还没改
 {
+	std::string curDir = this->curDir;//可能需要调用getCurWorkingDir函数重新获取
+	if (curDir.empty()) return "";
+	int index = curDir.find_last_of('/');
+	if (index == curDir.size() - 1)
+	{
+		if (index == 0) throw FTPException(ExType::AtTopDir);
+		else
+		{
+			curDir.pop_back();
+			index = curDir.find_last_of('/');
+		}
+	}
+	std::string aimDir = curDir.substr(0, index);
+
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	if (aimDir == "/")
+	{
+		sprintf(buf, "CDUP\r\n");
+	}
+	else
+	{
+		sprintf(buf, "CWD %s\r\n", aimDir.c_str());
+	}
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+
+	std::string str = buf;
+	std::cout << str;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else if(!containsCode(str, "250"))
+	{
+		throw FTPException(ExType::ChangeWorkSpaceFail, str);
+	}
+	return true;
+}
+
+bool FTPClient::setWorkSpace(std::string workSpace)
+{
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+
+	sprintf(buf, "CWD %s\r\n", workSpace.c_str());
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+
+	std::string str = buf;
+	std::cout << str;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else if (!containsCode(str, "250"))
+	{
+		throw FTPException(ExType::ChangeWorkSpaceFail, str);
+	}
+	this->curDir = workSpace;
 	return true;
 }
 
 bool FTPClient::deleteFileAtCurDir(std::string fileName)//删除当前工作区的一个文件-----
 {
 	char buf[MAX_BUF];
-	memset(buf, 0, MAX_BUF);
+	/*memset(buf, 0, MAX_BUF);
 	while (sock_ctl.Receive(buf, MAX_BUF, 0) != 0)
 	{
 		memset(buf, 0, MAX_BUF);
-	}
+	}*/
 	memset(buf, 0, MAX_BUF);
 	sprintf(buf, "DELE %s\r\n",fileName.c_str());
 
@@ -345,34 +410,150 @@ bool FTPClient::deleteFolderAtCurDir(std::string folderName)//删除当前工作区的一
 
 bool FTPClient::enterFolder(std::string folderName)//进入某一文件夹
 {
+	std::string aimStr = this->curDir + '/' + folderName;
+	try 
+	{
+		setWorkSpace(aimStr);
+	}
+	catch (FTPException e)
+	{
+		throw e;
+	}
+	return true;
+}
 
+bool FTPClient::Download(const std::string& des, const std::string& src)
+{
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "SIZE %s\r\n", src.c_str());//是否需要完整路径?
+	int num = sock_ctl.Send(buf, strlen(buf),0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	std::string str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else
+	{
+		if (!containsCode(str, "213"))
+		{
+			throw FTPException(ExType::GetFileSizeFail, str);
+		}
+	}
+	int index = str.find("213");
+	std::string sizeStr = "";
+	for (int i = index + 4; i < str.size() && str[i] != '\r'; i++)
+	{
+		sizeStr += str[i];
+	}
+	int size = str2UInt(sizeStr);
+	EnterPasvMode();
+	memset(buf, 0, MAX_BUF);
+
+	sprintf(buf, "RETR %s\r\n", src.c_str());
+	num = sock_ctl.Send(buf, strlen(buf), 0);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else
+	{
+		if (!containsCode(str, "150"))
+		{
+			throw FTPException(ExType::FileDownloadFail, str);
+		}
+	}
+
+	FILE* file = fopen(des.c_str(), "w");
+	memset(buf, 0, MAX_BUF);
+	while ((num = sock_data.Receive(buf, MAX_BUF, 0)) != 0)
+	{
+		fprintf(file, buf);
+		memset(buf, 0, MAX_BUF);
+	}
+	fclose(file);
+	return true;
+}
+
+bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)//上传文件
+{
+	char buf[MAX_BUF];
+	EnterPasvMode();
+	memset(buf, 0, MAX_BUF);
+
+	sprintf(buf, "STOR %s\r\n", fileName.c_str());//是否需要完整路径?
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	std::string str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else//150
+	{
+		if (!containsCode(str, "150"))
+		{
+			throw FTPException(ExType::FileUploadFail, str);
+		}
+	}
+	//开始传输数据
 
 
 	return true;
 }
 
+std::string FTPClient::getDir()
+{
+	if (this->curDir == "") return getCurWorkingDir();
+	return this->curDir;
+}
+
 void FTPClient::disConnect()
 {
-	if (sock_ctl.Connected())
+	//关闭数据连接,退出 FTP 服务器并关闭控制连接
+	closesocket(sock_data);
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	//接受返回 客户端接收服务器的响应码和信息，正常为 ”226 Transfer complete.”
+	/*recv(sock_ctl, buf, MAX_BUF,0);
+	
+	memset(buf, 0, MAX_BUF);*/
+	sprintf(buf, "QUIT\r\n");
+	send(sock_ctl, buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	//recv(sock_ctl, buf, MAX_BUF, 0);
+
+	closesocket(sock_ctl);
+	/*if (sock_ctl.Connected())
 	{
 		sock_ctl.Disconnect();
 	}
 	if (sock_data.Connected())
 	{
 		sock_data.Disconnect();
-	}
+	}*/
 }
 
 //进入被动模式
 bool FTPClient::EnterPasvMode()
 {
 	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
 	sprintf(buf, "PASV\r\n");
 	int ret = sock_ctl.Send(buf, strlen(buf), 0);
 	ret = sock_ctl.Receive(buf, MAX_BUF, 0);
 	std::string str = buf;
 	std::string subStr = str.substr(0, ret);//227
-	if (subStr.size() < 3 or str.substr(0, 3) != "227")
+	if (subStr.size() < 3 || !containsCode(str,"227"))
 	{
 		throw FTPException(ExType::EnterPasvFail);
 	}

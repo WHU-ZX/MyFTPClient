@@ -61,6 +61,9 @@ public:
 	FTPClient* client = nullptr;
 	afx_msg void OnClickSearch();
 	BOOL connected = FALSE;
+	CString workSpace = L"";
+
+	bool returnToParentDir();
 };
 
 

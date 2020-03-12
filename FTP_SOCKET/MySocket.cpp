@@ -1,5 +1,7 @@
 #include "MySocket.h"
 #include "FTPException.h"
+#include <windows.h>
+#define SLEEP_TIME (100)
 
 MySocket::MySocket()
 {
@@ -42,6 +44,7 @@ bool MySocket::Connected()//是否已连接到服务器
 
 int MySocket::Receive(char* buf, int len, int flags)
 {
+	Sleep(SLEEP_TIME);
 	return recv(sock, buf, len, flags);
 }
 

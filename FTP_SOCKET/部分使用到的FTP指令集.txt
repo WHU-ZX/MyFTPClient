@@ -1,2 +1,4 @@
-PWD\r\n			获取当前工作路径   成功则返回257 "path"   其中path从根目录算起
-LIST <path>\r\n		获取path目录下的所有文件信息，如果path是个文件，获取该文件信息，如果直接用LIST\r\n，则返回当前工作目录下的文件信息
+PWD\r\n			获取当前工作路径   成功则返回257 "path"   其中path从根目录算起             不需要进入被动模式
+LIST <path>\r\n		获取path目录下的所有文件信息，如果path是个文件，获取该文件信息，如果直接用LIST\r\n，则返回当前工作目录下的文件信息        需要进入被动模式
+CWD <path>\r\n		将path设为当前工作路径
+RETR <path>\r\n		下载路径为path的文件							需要进入被动模式

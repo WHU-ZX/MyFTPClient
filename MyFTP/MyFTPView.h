@@ -23,7 +23,7 @@ public:
 
 // 操作
 public:
-	BOOL Download(CString strSName, CString strDName);
+	//BOOL Download(CString strSName, CString strDName);
 	BOOL Upload(CString strSName, CString strDName);
 
 // 重写
@@ -56,6 +56,10 @@ public:
 private:
 	CImageList list;
 	void initTree();
+	void setWorkSpace(CString workspace);
+	void returnToParentDir();
+	void enterDir(CString dir);
+
 public:
 	afx_msg void OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult);
 };

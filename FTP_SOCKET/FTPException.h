@@ -2,7 +2,8 @@
 #include <string>
 
 enum class ExType{StartUpFail=0,CreateSocketFail,ConnectFail,LoginFail,UsrOrPwdWrong,EnterPasvFail,
-					GetFileInfoFail,GetCurDirFail,OtherFails,FileAccessFail};
+					GetFileInfoFail,GetCurDirFail,OtherFails,FileAccessFail,AtTopDir,ChangeWorkSpaceFail,
+					GetFileSizeFail,FileDownloadFail,FileUploadFail};
 class FTPException
 {
 private:

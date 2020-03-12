@@ -1,8 +1,7 @@
 ﻿  FTPClient.cpp
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(589,20): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(606,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(611,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(612,11): warning C4018: “<”: 有符号/无符号不匹配
-  FTP_SOCKET.cpp
-  正在生成代码...
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(448,28): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(770,20): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(787,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(792,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(793,11): warning C4018: “<”: 有符号/无符号不匹配
   FTP_SOCKET.vcxproj -> E:\C++-workspace\FTPClient\Debug\FTP_SOCKET.lib

@@ -41,8 +41,12 @@ public:
     bool deleteFileAtCurDir(std::string fileName);//删除当前工作区的一个文件
     bool deleteFolderAtCurDir(std::string folderName);//删除当前工作区的一个文件夹
     bool enterFolder(std::string folderName);//进入某一文件夹
+    bool Download(const std::string& des, const std::string& src);//下载文件
+    bool Upload(const std::string& pathName, const std::string& fileName);//上传文件
+    
 
     void disConnect();
+    std::string getDir();
 
     void test();
 private:
@@ -64,6 +68,7 @@ private:
 
     std::vector<std::string> getFileInfoStrs(std::string listRetStr);
     std::vector<std::string> divideRetStrs(std::string retStr);
+    bool setWorkSpace(std::string workSpace);
 
 private:
     std::string getFileNameWithTheRetOfPWD(std::string pwdRetStr, int len) const;

@@ -14,6 +14,7 @@
 #include "MyFTPView.h"
 #include "Afxinet.h"
 #include "MainFrm.h"
+#include "../FTP_SOCKET/FTPException.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -72,12 +73,12 @@ void CMyFTPView::OnInitialUpdate()
 }
 
 //执行实际的下载任务
-BOOL CMyFTPView::Download(CString strSName, CString strDName)
-{
-	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
-	
-	return TRUE;
-}
+//BOOL CMyFTPView::Download(CString strSName, CString strDName)
+//{
+//	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
+//	
+//	return TRUE;
+//}
 
 //执行实际的上传任务
 BOOL CMyFTPView::Upload(CString strSName, CString strDName)
@@ -109,6 +110,25 @@ void CMyFTPView::initTree()
 	m_tree.SetImageList(&list, TVSIL_NORMAL);
 	//m_tree.InsertItem(L"1", 0, 0, NULL);
 }
+
+void CMyFTPView::setWorkSpace(CString workspace)//将工作路径设置为workspace
+{
+
+}
+
+void CMyFTPView::returnToParentDir() //进入上层目录
+{
+	
+}
+
+void CMyFTPView::enterDir(CString dir)//进入dir  会调用setWorkSpace函数
+{
+	
+
+	//如果是一个文件，则提示：暂时不支持打开文件功能
+
+}
+
 // CMyFTPView 打印
 
 BOOL CMyFTPView::OnPreparePrinting(CPrintInfo* pInfo)
@@ -161,24 +181,35 @@ CMyFTPDoc* CMyFTPView::GetDocument() const // 非调试版本是内联的
 //双击树控件的item时调用的函数
 void CMyFTPView::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	*pResult = 0;
 	HTREEITEM item = m_tree.GetSelectedItem();
 	CString str = m_tree.GetItemText(item);
 	bool isFileFolder = isFolderMap[str];
 	if (str == L"...")//点击了上级目录
 	{
-		MessageBox(L"双击上级目录", L"Test", MB_ICONEXCLAMATION);
+		try
+		{
+			frame->returnToParentDir();
+			frame->updateFileDir();
+		}
+		catch(FTPException e)
+		{
+			CString cStr = CString(e.printInfo().c_str());
+			MessageBox(cStr, L"Error", MB_ICONEXCLAMATION);
+		}
+		//MessageBox(L"双击上级目录", L"Test", MB_ICONEXCLAMATION);
 	}
 	else if (isFileFolder)//是文件夹
 	{
+		std::string folderName = CT2A(str.GetBuffer());
+		frame->client->enterFolder(folderName);
+		frame->updateFileDir();
 
-
-
-		MessageBox(L"双击了文件夹" + str, L"Test", MB_ICONEXCLAMATION);
+		//MessageBox(L"双击了文件夹" + str, L"Test", MB_ICONEXCLAMATION);
 	}
 	else
 	{
-		MessageBox(L"双击了文件" + str, L"Test", MB_ICONEXCLAMATION);
+		MessageBox(L"暂不提供文件预览功能", L"Sorry", MB_ICONEXCLAMATION);
 	}
 }

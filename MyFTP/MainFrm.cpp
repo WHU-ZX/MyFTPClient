@@ -130,20 +130,75 @@ void CMainFrame::OnClickDownload()
 	HTREEITEM item = pView->m_tree.GetSelectedItem();
 	CString str = pView->m_tree.GetItemText(item);
 	//判断str是否是文件夹
+	if (pView->isFolderMap[str])//如果是文件夹
+	{
+		MessageBox(L"暂时不提供文件夹下载功能!", L"Fail", MB_ICONEXCLAMATION);
+	}
+	else
+	{
+		//选择的是文件
+		CString strDestName;
+		CFileDialog dlg(FALSE); //定义了一个文件对话框对象变量
 
-	
+		if (dlg.DoModal() == IDOK)        //激活文件对话框
+		{
+			//获得下载文件在本地机上存储的路径和名称
+			strDestName = dlg.GetPathName();
+			std::string des = CT2A(strDestName.GetBuffer());
+			std::string src = CT2A(str.GetBuffer());
+			//调用函数下载文件
+			client->Download(des, src);
+			MessageBox(L"下载完成!", L"Success", MB_ICONEXCLAMATION);
+		}
+		else {
+			MessageBox(L"请写入文件名!", L"Fail", MB_ICONEXCLAMATION);
+		}
+	}
 }
 
 //点击“上传”后调用
 void CMainFrame::OnClickUpload()
 {
-	// TODO: 在此添加命令处理程序代码
+	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	std::string workSpace = client->getDir();
+	CString strPathName;
+	CString strFileName;
+	CFileDialog dlg(TRUE); //定义了一个文件对话框对象变量
+	if (dlg.DoModal() == IDOK)
+	{
+		strPathName = dlg.GetPathName();
+		strFileName = dlg.GetFileName();
+		std::string pathName = CT2A(strPathName.GetBuffer());
+		std::string fileName = CT2A(strFileName.GetBuffer());
+		client->Upload(pathName, fileName);
+	}
+	else
+	{
+		MessageBox(L"请选择文件!", L"Fail", MB_ICONEXCLAMATION);
+	}
+
 }
 
 //点击“删除”后调用
 void CMainFrame::OnClickDelete()
 {
-	// TODO: 在此添加命令处理程序代码
+	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	HTREEITEM item = pView->m_tree.GetSelectedItem();
+	CString fileStr = pView->m_tree.GetItemText(item);
+
+	bool isFolder = pView->isFolderMap[fileStr];
+	if (isFolder)//后期要修改，要支持它
+	{
+		MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+	}
+	else
+	{
+		std::string fileName = CT2A(fileStr.GetBuffer());
+		client->deleteFileAtCurDir(fileName);
+		MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
+		updateFileDir();
+	}
+	
 }
 
 //点击“新建文件夹”后调用
@@ -161,11 +216,14 @@ void CMainFrame::OnClickNewFile()
 void CMainFrame::updateFileDir()
 {
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	pView->isFolderMap.clear();
 	//pView->m_tree.
 	pView->m_tree.DeleteAllItems();
 	pView->m_tree.InsertItem(L"...", 0, 0, NULL);
 	
 	std::vector<FileInfo> fileInfo = client->getFilesOfCurWorkDir();
+	std::string workspace = client->getDir();
+	this->workSpace = workspace.c_str();
 
 	for (int i = 0; i < fileInfo.size(); i++)
 	{
@@ -184,17 +242,22 @@ void CMainFrame::updateFileDir()
 	}
 }
 
+bool CMainFrame::returnToParentDir()
+{
+	return client->returnToParentDir();
+}
+
 //点击“查询目录”后调用
 void CMainFrame::OnClickSearch()
 {
-	/*if (!connected)
+	if (!connected)
 	{
 		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
 		return;
-	}*/
+	}
 	try
 	{
-		loginDlg.Connect();
+		//loginDlg.Connect();
 		updateFileDir();
 	}
 	catch (FTPException e)
