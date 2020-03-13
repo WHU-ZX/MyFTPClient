@@ -115,7 +115,7 @@ void CLoginDlg::Connect()
 
 // CLoginDlg 消息处理程序
 
-//点击“”按钮后调用此函数，用于连接服务器，获取文件列表
+//点击“连接”按钮后调用此函数，用于连接服务器，获取文件列表
 void CLoginDlg::OnBnClickedButton1()
 {
 	//保存登陆信息
@@ -130,6 +130,7 @@ void CLoginDlg::OnBnClickedButton1()
 
 	//连接操作，获取文件列表
 	Connect();
+	MessageBox(L"连接成功！", L"Success", MB_ICONEXCLAMATION);
 }
 
 //重写，删除OnOK函数，否则文本框点击回车会退出

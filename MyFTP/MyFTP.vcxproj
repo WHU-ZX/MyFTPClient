@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CGetNameDlg.h" />
     <ClInclude Include="CLoginDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="LoginData.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CGetNameDlg.cpp" />
     <ClCompile Include="CLoginDlg.cpp" />
     <ClCompile Include="LoginData.cpp" />
     <ClCompile Include="MainFrm.cpp" />

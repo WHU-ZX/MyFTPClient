@@ -1,7 +1,12 @@
 ﻿  FTPClient.cpp
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(448,28): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(770,20): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(787,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(792,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(793,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(501,28): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(569,7): warning C4101: “buf”: 未引用的局部变量
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(831,20): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(848,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(853,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(854,11): warning C4018: “<”: 有符号/无符号不匹配
+  FTP_SOCKET.cpp
+  FileInfo.cpp
+E:\C++-workspace\FTPClient\FTP_SOCKET\FileInfo.cpp(94,20): warning C4018: “<”: 有符号/无符号不匹配
+  正在生成代码...
   FTP_SOCKET.vcxproj -> E:\C++-workspace\FTPClient\Debug\FTP_SOCKET.lib

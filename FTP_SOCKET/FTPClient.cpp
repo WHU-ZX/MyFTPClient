@@ -289,6 +289,27 @@ void FTPClient::test()
 
 bool FTPClient::createFolderAtWorkingDir(std::string folderName)//可能会产生文件夹名不符合规范的异常
 {
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+
+	sprintf(buf, "MKD %s\r\n", folderName.c_str());
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	std::string str = buf;
+
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else
+	{
+		if (!containsCode(str, "257"))
+		{
+			throw FTPException(ExType::CreateFolderFail, str);
+		}
+	}
 	return true;
 }
 
@@ -405,6 +426,38 @@ bool FTPClient::deleteFileAtCurDir(std::string fileName)//删除当前工作区的一个文
 
 bool FTPClient::deleteFolderAtCurDir(std::string folderName)//删除当前工作区的一个文件夹
 {
+	char buf[MAX_BUF];
+	/*memset(buf, 0, MAX_BUF);
+	while (sock_ctl.Receive(buf, MAX_BUF, 0) != 0)
+	{
+		memset(buf, 0, MAX_BUF);
+	}*/
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "RMD %s\r\n", folderName.c_str());
+
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+
+	std::string str = buf;
+	std::cout << str;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else if (!containsCode(str, "250"))
+	{
+		std::string tStr = str.substr(0, 3);
+		if (containsCode(str, "550") || containsCode(str, "450"))//文件不可用
+		{
+			throw FTPException(ExType::FileAccessFail);
+		}
+		else//其他错误
+		{
+			throw FTPException(ExType::OtherFails);
+		}
+	}
 	return true;
 }
 
@@ -506,6 +559,14 @@ bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)
 	}
 	//开始传输数据
 
+
+	return true;
+}
+
+bool FTPClient::rename(std::string from, std::string to)
+{
+	//见：https://www.cnblogs.com/hongyuyingxiao/p/10486036.html 三分之二左右处
+	char buf[MAX_BUF];
 
 	return true;
 }

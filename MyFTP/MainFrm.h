@@ -5,6 +5,8 @@
 #pragma once
 #include "CLoginDlg.h"
 #include "Afxinet.h"
+#include "CGetNameDlg.h"
+#include "../FTP_SOCKET/FTPException.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -53,10 +55,7 @@ public:
 	afx_msg void OnClickNewFile();
 
 public:
-	//CInternetSession* pSession = NULL;     //定义会话对象指针变量
-	//CFtpConnection* pConnection= NULL;   //定义连接对象指针变量
-	//CFtpFileFind* pFileFind = NULL;          //定义文件查询对象指针变量
-
+	void showExceptionByMessageBox(FTPException e);
 	void updateFileDir();
 	FTPClient* client = nullptr;
 	afx_msg void OnClickSearch();
@@ -64,6 +63,7 @@ public:
 	CString workSpace = L"";
 
 	bool returnToParentDir();
+	afx_msg void OnClickRename();
 };
 
 

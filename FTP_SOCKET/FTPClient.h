@@ -43,7 +43,7 @@ public:
     bool enterFolder(std::string folderName);//进入某一文件夹
     bool Download(const std::string& des, const std::string& src);//下载文件
     bool Upload(const std::string& pathName, const std::string& fileName);//上传文件
-    
+    bool rename(std::string from, std::string to);//文件重命名
 
     void disConnect();
     std::string getDir();

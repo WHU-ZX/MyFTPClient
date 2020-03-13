@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include "MyFTPView.h"
-#include "../FTP_SOCKET/FTPException.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -28,6 +28,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_32775, &CMainFrame::OnClickNewFileFolder)
 	ON_COMMAND(ID_32776, &CMainFrame::OnClickNewFile)
 	ON_COMMAND(ID_32777, &CMainFrame::OnClickSearch)
+	ON_COMMAND(ID_32779, &CMainFrame::OnClickRename)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -37,6 +38,12 @@ static UINT indicators[] =
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
 };
+
+void CMainFrame::showExceptionByMessageBox(FTPException e)
+{
+	CString cStr = CString(e.printInfo().c_str());
+	MessageBox(cStr, L"Error", MB_ICONEXCLAMATION);
+}
 
 // CMainFrame 构造/析构
 
@@ -72,6 +79,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	//创建登陆窗口
 	loginDlg.Create(CONNECT_DLG);
+	//getNameDlg.Create(GETNAME_DLG);
 
 	return 0;
 }
@@ -126,6 +134,11 @@ void CMainFrame::OnClickConnect()
 //点击“下载”后调用
 void CMainFrame::OnClickDownload()
 {
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
 	HTREEITEM item = pView->m_tree.GetSelectedItem();
 	CString str = pView->m_tree.GetItemText(item);
@@ -159,6 +172,11 @@ void CMainFrame::OnClickDownload()
 //点击“上传”后调用
 void CMainFrame::OnClickUpload()
 {
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
 	std::string workSpace = client->getDir();
 	CString strPathName;
@@ -182,6 +200,11 @@ void CMainFrame::OnClickUpload()
 //点击“删除”后调用
 void CMainFrame::OnClickDelete()
 {
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
 	HTREEITEM item = pView->m_tree.GetSelectedItem();
 	CString fileStr = pView->m_tree.GetItemText(item);
@@ -189,7 +212,11 @@ void CMainFrame::OnClickDelete()
 	bool isFolder = pView->isFolderMap[fileStr];
 	if (isFolder)//后期要修改，要支持它
 	{
-		MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+		//MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+		std::string fileName = CT2A(fileStr.GetBuffer());
+		client->deleteFolderAtCurDir(fileName);
+		MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
+		updateFileDir();
 	}
 	else
 	{
@@ -198,23 +225,62 @@ void CMainFrame::OnClickDelete()
 		MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
 		updateFileDir();
 	}
-	
 }
 
 //点击“新建文件夹”后调用
 void CMainFrame::OnClickNewFileFolder()
 {
-	// TODO: 在此添加命令处理程序代码
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
+	CString newFileName;
+	bool clickedOk;
+	CGetNameDlg getNameDlg(newFileName,clickedOk);
+	getNameDlg.DoModal();
+	if (clickedOk)
+	{
+		//CString newName = getNameDlg.newFileNameStr();
+		if (newFileName.IsEmpty())
+		{
+			MessageBox(L"输入为空!", L"Warning", MB_ICONEXCLAMATION);
+		}
+		else//做真正的事
+		{
+			std::string fileName = CT2A(newFileName.GetBuffer());
+			try 
+			{
+				client->createFolderAtWorkingDir(fileName);
+				MessageBox(L"创建成功!", L"Success", MB_ICONEXCLAMATION);
+				updateFileDir();
+			}
+			catch (FTPException e)
+			{
+				showExceptionByMessageBox(e);
+			}
+		}
+	}
 }
 
 //点击“新建文件”后调用
 void CMainFrame::OnClickNewFile()
 {
-	// TODO: 在此添加命令处理程序代码
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
+	
 }
 
 void CMainFrame::updateFileDir()
 {
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
 	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
 	pView->isFolderMap.clear();
 	//pView->m_tree.
@@ -244,6 +310,11 @@ void CMainFrame::updateFileDir()
 
 bool CMainFrame::returnToParentDir()
 {
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return false;
+	}
 	return client->returnToParentDir();
 }
 
@@ -265,4 +336,15 @@ void CMainFrame::OnClickSearch()
 		CString cStr = CString(e.printInfo().c_str());
 		MessageBox(cStr, L"Error", MB_ICONEXCLAMATION);
 	}
+}
+
+//点击“重命名”后调用
+void CMainFrame::OnClickRename()
+{
+	if (!connected)
+	{
+		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
+		return;
+	}
+	// TODO: 在此添加命令处理程序代码
 }

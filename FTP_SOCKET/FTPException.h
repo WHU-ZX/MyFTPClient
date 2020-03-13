@@ -3,7 +3,7 @@
 
 enum class ExType{StartUpFail=0,CreateSocketFail,ConnectFail,LoginFail,UsrOrPwdWrong,EnterPasvFail,
 					GetFileInfoFail,GetCurDirFail,OtherFails,FileAccessFail,AtTopDir,ChangeWorkSpaceFail,
-					GetFileSizeFail,FileDownloadFail,FileUploadFail};
+					GetFileSizeFail,FileDownloadFail,FileUploadFail,CreateFolderFail};
 class FTPException
 {
 private:

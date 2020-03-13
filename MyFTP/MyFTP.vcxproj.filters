@@ -45,6 +45,9 @@
     <ClInclude Include="LoginData.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CGetNameDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyFTP.cpp">
@@ -66,6 +69,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="LoginData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CGetNameDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

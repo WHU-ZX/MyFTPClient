@@ -20,63 +20,81 @@ FileInfo::FileInfo(std::string strFromServerResponse,std::string curDir)
 	int i = 0, len = strFromServerResponse.size();
 	//各种属性值，是按顺序声明的
 	std::string accessRigthStr = "";
-	char isFolderChar = '\0';
+	std::string isFolder = "";
 	std::string num1 = "",num2 = "",num3="";
 	std::string createMonth = "";//创建文件的月份
 	std::string createDay = "";//创建文件的日期
 	std::string createTime = "";//创建文件的时间
 	std::string name = "";
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		accessRigthStr += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	isFolderChar = strFromServerResponse[i];
-	i++;
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+
+	while (i < len && strFromServerResponse[i] != ' ')
+	{
+		isFolder += strFromServerResponse[i];
+		i++;
+	}
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		num1 += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		num2 += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		num3 += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		createMonth += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		createDay += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		createTime += strFromServerResponse[i];
 		i++;
 	}
-	while (strFromServerResponse[i] == ' ' && i < len) i++;
-	while (strFromServerResponse[i] != ' ' && i < len)
+	while (i < len && strFromServerResponse[i] == ' ') i++;
+	while (i < len && strFromServerResponse[i] != ' ')
 	{
 		name += strFromServerResponse[i];
 		i++;
 	}
 	this->fileName = name;
 	this->path = curDir + '/' + name;
-	this->folder = isFolderChar == '2';
+	int num = str2UInt(isFolder);
+	this->folder = (num > 1);
+}
+
+int FileInfo::str2UInt(std::string str)const
+{
+	if (str.empty()) return -1;
+	int ret = 0;
+	for (int i = 0; i < str.size(); i++)
+	{
+		ret *= 10;
+		ret += str[i] - '0';
+	}
+	return ret;
 }
