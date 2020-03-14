@@ -189,12 +189,12 @@ void CMainFrame::OnClickUpload()
 		std::string pathName = CT2A(strPathName.GetBuffer());
 		std::string fileName = CT2A(strFileName.GetBuffer());
 		client->Upload(pathName, fileName);
+		updateFileDir();
 	}
 	else
 	{
 		MessageBox(L"请选择文件!", L"Fail", MB_ICONEXCLAMATION);
 	}
-
 }
 
 //点击“删除”后调用
@@ -214,16 +214,30 @@ void CMainFrame::OnClickDelete()
 	{
 		//MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
 		std::string fileName = CT2A(fileStr.GetBuffer());
-		client->deleteFolderAtCurDir(fileName);
-		MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
-		updateFileDir();
+		try
+		{
+			client->deleteFolderAtCurDir(fileName);
+			MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
+			updateFileDir();
+		}
+		catch (FTPException e)
+		{
+			showExceptionByMessageBox(e);
+		}
 	}
 	else
 	{
 		std::string fileName = CT2A(fileStr.GetBuffer());
-		client->deleteFileAtCurDir(fileName);
-		MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
-		updateFileDir();
+		try
+		{
+			client->deleteFileAtCurDir(fileName);
+			MessageBox(L"删除成功!", L"Success", MB_ICONEXCLAMATION);
+			updateFileDir();
+		}
+		catch (FTPException e)
+		{
+			showExceptionByMessageBox(e);
+		}
 	}
 }
 
@@ -290,6 +304,8 @@ void CMainFrame::updateFileDir()
 	std::vector<FileInfo> fileInfo = client->getFilesOfCurWorkDir();
 	std::string workspace = client->getDir();
 	this->workSpace = workspace.c_str();
+
+	pView->path_text.SetWindowTextW(this->workSpace);
 
 	for (int i = 0; i < fileInfo.size(); i++)
 	{

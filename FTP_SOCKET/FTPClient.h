@@ -66,6 +66,8 @@ private:
     bool EnterASCIIMode(); //进入ASCII模式
     bool EnterBinaryMode(); //进入二进制模式
 
+    int parseFileSize(std::string response);
+
     std::vector<std::string> getFileInfoStrs(std::string listRetStr);
     std::vector<std::string> divideRetStrs(std::string retStr);
     bool setWorkSpace(std::string workSpace);

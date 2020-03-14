@@ -55,6 +55,7 @@ public:
 	std::map<CString, bool> isFolderMap = std::map<CString, bool>();
 private:
 	CImageList list;
+	CFont m_textFont;
 	void initTree();
 	void setWorkSpace(CString workspace);
 	void returnToParentDir();
@@ -62,6 +63,8 @@ private:
 
 public:
 	afx_msg void OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult);
+	CStatic path_text;
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
 #ifndef _DEBUG  // MyFTPView.cpp 中的调试版本

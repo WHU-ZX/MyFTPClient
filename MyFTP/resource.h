@@ -20,6 +20,7 @@
 #define IDC_TREE1                       1003
 #define IDC_EDIT3                       1004
 #define IDC_CONNECT_TEXT                1005
+#define PATH_TEXT                       1006
 #define ID_32771                        32771
 #define ID_32772                        32772
 #define ID_32773                        32773
@@ -36,7 +37,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        318
 #define _APS_NEXT_COMMAND_VALUE         32780
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

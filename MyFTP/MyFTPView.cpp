@@ -31,6 +31,7 @@ BEGIN_MESSAGE_MAP(CMyFTPView, CFormView)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CFormView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CFormView::OnFilePrintPreview)
 	ON_NOTIFY(NM_DBLCLK, IDC_TREE1, &CMyFTPView::OnNMDblclkTree1)
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 // CMyFTPView 构造/析构
@@ -53,6 +54,7 @@ void CMyFTPView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_TREE1, m_tree);
+	DDX_Control(pDX, PATH_TEXT, path_text);
 }
 
 BOOL CMyFTPView::PreCreateWindow(CREATESTRUCT& cs)
@@ -69,6 +71,10 @@ void CMyFTPView::OnInitialUpdate()
 	GetParentFrame()->RecalcLayout();
 	ResizeParentToFit();
 
+	//初始化字体
+	m_textFont.CreatePointFont(150, L"楷体");
+	path_text.SetFont(&m_textFont);
+	//初始化TreeControl
 	initTree();
 }
 
@@ -212,4 +218,21 @@ void CMyFTPView::OnNMDblclkTree1(NMHDR* pNMHDR, LRESULT* pResult)
 	{
 		MessageBox(L"暂不提供文件预览功能", L"Sorry", MB_ICONEXCLAMATION);
 	}
+}
+
+
+HBRUSH CMyFTPView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CFormView::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  在此更改 DC 的任何特性
+
+	if (pWnd->GetDlgCtrlID() == PATH_TEXT)
+	{
+		pDC->SetTextColor(RGB(0, 0, 255));//设置字体颜色
+		//pDC->SetBkColor(RGB(0, 255, 0));//设置背景颜色
+	}
+
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+	return hbr;
 }
