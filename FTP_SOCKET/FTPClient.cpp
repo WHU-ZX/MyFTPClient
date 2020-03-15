@@ -658,6 +658,7 @@ bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)
 	FILE* pFile = fopen(pathName.c_str(), "rb");  // 以只读方式打开  且文件必须存在
 
 	char buf[MAX_BUF];
+	//setASCIImode();
 	EnterPasvMode();
 
 	memset(buf, 0, MAX_BUF);

@@ -219,8 +219,8 @@ void CMainFrame::OnClickDelete()
 	bool isFolder = pView->isFolderMap[fileStr];
 	if (isFolder)//后期要修改，要支持它
 	{
-		MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
-		/*std::string fileName = CT2A(fileStr.GetBuffer());
+		//MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+		std::string fileName = CT2A(fileStr.GetBuffer());
 		try
 		{
 			client->deleteFolderAtCurDir(fileName);
@@ -230,7 +230,8 @@ void CMainFrame::OnClickDelete()
 		catch (FTPException e)
 		{
 			showExceptionByMessageBox(e);
-		}*/
+			MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+		}
 	}
 	else
 	{
