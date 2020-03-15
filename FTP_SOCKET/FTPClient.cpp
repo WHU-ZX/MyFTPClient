@@ -1,6 +1,7 @@
 #include "FTPClient.h"
 #include <WinSock2.h>
 #include "FTPException.h"
+#include <fstream>
 #pragma comment(lib,"ws2_32.lib")
 
 #define MAX_BUF (5000)
@@ -533,6 +534,109 @@ bool FTPClient::Download(const std::string& des, const std::string& src)
 	return true;
 }
 
+bool FTPClient::setASCIImode()
+{
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "TYPE I\r\n");
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);//200
+	std::string str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails, str);
+	}
+	else if (!containsCode(str, "200"))
+	{
+		throw FTPException(ExType::SetBinModeFail, str);
+	}
+	return true;
+}
+
+bool FTPClient::DownloadWithPos(const std::string& des, const std::string& src)
+{
+	int len = getFileLength(des);
+	
+	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "SIZE %s\r\n", src.c_str());//是否需要完整路径?
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	std::string str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else
+	{
+		if (!containsCode(str, "213"))
+		{
+			throw FTPException(ExType::GetFileSizeFail, str);
+		}
+	}
+	int index = str.find("213");
+	std::string sizeStr = "";
+	for (int i = index + 4; i < str.size() && str[i] != '\r'; i++)
+	{
+		sizeStr += str[i];
+	}
+	int size = str2UInt(sizeStr);
+
+	if (len >= size) return false;
+	if (len == -1) len = 0;
+
+	//设置pos
+	if (len > 0)
+	{
+		memset(buf, 0, MAX_BUF);
+		sprintf(buf, "REST %d\r\n", len);
+		num = sock_ctl.Send(buf, strlen(buf), 0);
+		num = sock_ctl.Receive(buf, MAX_BUF, 0);//350
+		str = buf;
+		if (num < 3)
+		{
+			throw FTPException(ExType::OtherFails, str);
+		}
+		else if (!containsCode(str, "350"))
+		{
+			throw FTPException(ExType::SetPosFail, str);
+		}
+		setASCIImode();
+	}
+	EnterPasvMode();
+	memset(buf, 0, MAX_BUF);
+
+	sprintf(buf, "RETR %s\r\n", src.c_str());
+	num = sock_ctl.Send(buf, strlen(buf), 0);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
+	str = buf;
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails);
+	}
+	else
+	{
+		if (!containsCode(str, "150"))
+		{
+			throw FTPException(ExType::FileDownloadFail, str);
+		}
+	}
+
+	FILE* file = fopen(des.c_str(), "a+");
+	memset(buf, 0, MAX_BUF);
+	while ((num = sock_data.Receive(buf, MAX_BUF, 0)) != 0)
+	{
+		fprintf(file, buf);
+		memset(buf, 0, MAX_BUF);
+	}
+	fclose(file);
+	return true;
+}
+
 int FTPClient::parseFileSize(std::string response)
 {
 	int index = response.find("213");
@@ -589,7 +693,18 @@ bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)
 		}
 	}
 	num = sock_ctl.Send(buf, strlen(buf), 0);
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);
 	str = buf;
+
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails, str);
+	}
+	else if(!containsCode(str,"150"))
+	{
+		throw FTPException(ExType::UploadRefused,str);
+	}
 
 	fseek(pFile, fileSize, SEEK_SET);
 	int nLen;
@@ -610,10 +725,17 @@ bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)
 			throw FTPException(ExType::DataUploadFail);
 		}
 	}
+	sock_data.Disconnect();
 	fclose(pFile);
 
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);//226
 
-
+	if (num < 3 || !containsCode(str, "150"))
+	{
+		throw FTPException(ExType::OtherFails, str);
+	}
+	
 	
 	//num = sock_ctl.Send(buf, strlen(buf), 0);
 	//memset(buf, 0, MAX_BUF);
@@ -685,7 +807,7 @@ bool FTPClient::EnterPasvMode()
 	ret = sock_ctl.Receive(buf, MAX_BUF, 0);
 	std::string str = buf;
 	std::string subStr = str.substr(0, ret);//227
-	if (subStr.size() < 3 || !containsCode(str,"227"))
+	if (subStr.size() < 3 || !containsCode(subStr,"227"))
 	{
 		throw FTPException(ExType::EnterPasvFail);
 	}
@@ -963,4 +1085,15 @@ bool FTPClient::containsCode(std::string str, std::string code)
 				return false;
 		}
 	}
+}
+
+int FTPClient::getFileLength(std::string fileName) {
+	int length;
+	std::ifstream is;
+	is.open(fileName.c_str(), std::ios::binary);
+
+	// get length of file: 
+	is.seekg(0, std::ios::end);
+	length = is.tellg();
+	return length;
 }

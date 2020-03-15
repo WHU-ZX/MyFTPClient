@@ -42,8 +42,10 @@ public:
     bool deleteFolderAtCurDir(std::string folderName);//删除当前工作区的一个文件夹
     bool enterFolder(std::string folderName);//进入某一文件夹
     bool Download(const std::string& des, const std::string& src);//下载文件
+    bool DownloadWithPos(const std::string& des, const std::string& src);//带有断点续传功能的下载
     bool Upload(const std::string& pathName, const std::string& fileName);//上传文件
     bool rename(std::string from, std::string to);//文件重命名
+    bool setASCIImode();//设为二进制传输模式
 
     void disConnect();
     std::string getDir();
@@ -82,5 +84,6 @@ private:
     RetInfo getLastRet(std::string str);
     bool containsCode(std::string str, std::string code);
     bool isDigit(char c)const;
+    int getFileLength(std::string fileName);
 };
 

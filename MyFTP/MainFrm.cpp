@@ -160,8 +160,16 @@ void CMainFrame::OnClickDownload()
 			std::string des = CT2A(strDestName.GetBuffer());
 			std::string src = CT2A(str.GetBuffer());
 			//调用函数下载文件
-			client->Download(des, src);
-			MessageBox(L"下载完成!", L"Success", MB_ICONEXCLAMATION);
+			//client->Download(des, src);
+			try
+			{
+				client->DownloadWithPos(des, src);
+				MessageBox(L"下载完成!", L"Success", MB_ICONEXCLAMATION);
+			}
+			catch (FTPException e)
+			{
+				showExceptionByMessageBox(e);
+			}
 		}
 		else {
 			MessageBox(L"请写入文件名!", L"Fail", MB_ICONEXCLAMATION);
