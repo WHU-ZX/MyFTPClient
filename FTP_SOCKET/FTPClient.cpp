@@ -735,24 +735,6 @@ bool FTPClient::Upload(const std::string& pathName, const std::string& fileName)
 	{
 		throw FTPException(ExType::OtherFails, str);
 	}
-	
-	
-	//num = sock_ctl.Send(buf, strlen(buf), 0);
-	//memset(buf, 0, MAX_BUF);
-	//num = sock_ctl.Receive(buf, MAX_BUF, 0);
-	//std::string str = buf;
-	//if (num < 3)
-	//{
-	//	throw FTPException(ExType::OtherFails);
-	//}
-	//else//150
-	//{
-	//	if (!containsCode(str, "150"))
-	//	{
-	//		throw FTPException(ExType::FileUploadFail, str);
-	//	}
-	//}
-	////开始传输数据
 	return true;
 }
 
@@ -760,7 +742,37 @@ bool FTPClient::rename(std::string from, std::string to)
 {
 	//见：https://www.cnblogs.com/hongyuyingxiao/p/10486036.html 三分之二左右处
 	char buf[MAX_BUF];
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "RNFR %s\r\n", from.c_str());
+	int num = sock_ctl.Send(buf, strlen(buf), 0);
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);//350
+	std::string str = buf;
 
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails,str);
+	}
+	else if (!containsCode(str, "350"))
+	{
+		throw FTPException(ExType::RNFRFail, str);
+	}
+
+	memset(buf, 0, MAX_BUF);
+	sprintf(buf, "RNTO %s\r\n", to.c_str());
+	num = sock_ctl.Send(buf, strlen(buf), 0);
+	memset(buf, 0, MAX_BUF);
+	num = sock_ctl.Receive(buf, MAX_BUF, 0);//250
+	str = buf;
+
+	if (num < 3)
+	{
+		throw FTPException(ExType::OtherFails, str);
+	}
+	else if (!containsCode(str, "250"))
+	{
+		throw FTPException(ExType::RNTOFail, str);
+	}
 	return true;
 }
 

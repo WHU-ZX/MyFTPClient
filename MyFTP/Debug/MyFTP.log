@@ -1,8 +1,1 @@
-﻿  CLoginDlg.cpp
-E:\C++-workspace\FTPClient\MyFTP\CLoginDlg.cpp(153,20): warning C4018: “<”: 有符号/无符号不匹配
-  MainFrm.cpp
-E:\C++-workspace\FTPClient\MyFTP\MainFrm.cpp(318,20): warning C4018: “<”: 有符号/无符号不匹配
-  MyFTP.cpp
-  MyFTPView.cpp
-  正在生成代码...
-  MyFTP.vcxproj -> E:\C++-workspace\FTPClient\Debug\MyFTP.exe
+﻿  MyFTP.vcxproj -> E:\C++-workspace\FTPClient\Debug\MyFTP.exe

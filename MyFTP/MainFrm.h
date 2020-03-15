@@ -52,7 +52,6 @@ public:
 	afx_msg void OnClickUpload();
 	afx_msg void OnClickDelete();
 	afx_msg void OnClickNewFileFolder();
-	afx_msg void OnClickNewFile();
 
 public:
 	void showExceptionByMessageBox(FTPException e);

@@ -26,7 +26,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_32773, &CMainFrame::OnClickUpload)
 	ON_COMMAND(ID_32774, &CMainFrame::OnClickDelete)
 	ON_COMMAND(ID_32775, &CMainFrame::OnClickNewFileFolder)
-	ON_COMMAND(ID_32776, &CMainFrame::OnClickNewFile)
 	ON_COMMAND(ID_32777, &CMainFrame::OnClickSearch)
 	ON_COMMAND(ID_32779, &CMainFrame::OnClickRename)
 END_MESSAGE_MAP()
@@ -220,8 +219,8 @@ void CMainFrame::OnClickDelete()
 	bool isFolder = pView->isFolderMap[fileStr];
 	if (isFolder)//后期要修改，要支持它
 	{
-		//MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
-		std::string fileName = CT2A(fileStr.GetBuffer());
+		MessageBox(L"暂不支持删除整个文件夹!", L"Sorry", MB_ICONEXCLAMATION);
+		/*std::string fileName = CT2A(fileStr.GetBuffer());
 		try
 		{
 			client->deleteFolderAtCurDir(fileName);
@@ -231,7 +230,7 @@ void CMainFrame::OnClickDelete()
 		catch (FTPException e)
 		{
 			showExceptionByMessageBox(e);
-		}
+		}*/
 	}
 	else
 	{
@@ -285,16 +284,6 @@ void CMainFrame::OnClickNewFileFolder()
 	}
 }
 
-//点击“新建文件”后调用
-void CMainFrame::OnClickNewFile()
-{
-	if (!connected)
-	{
-		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
-		return;
-	}
-	
-}
 
 void CMainFrame::updateFileDir()
 {
@@ -370,5 +359,34 @@ void CMainFrame::OnClickRename()
 		MessageBox(L"请先连接到服务器!", L"Fail", MB_ICONEXCLAMATION);
 		return;
 	}
-	// TODO: 在此添加命令处理程序代码
+	CMyFTPView* pView = (CMyFTPView*)this->GetActiveView();
+	HTREEITEM item = pView->m_tree.GetSelectedItem();
+	CString fromCStr = pView->m_tree.GetItemText(item);
+
+	CString toCStr;
+	bool clickedOk;
+	CGetNameDlg getNameDlg(toCStr, clickedOk);
+	getNameDlg.DoModal();
+	if (clickedOk)
+	{
+		if (toCStr.IsEmpty())
+		{
+			MessageBox(L"输入为空!", L"Warning", MB_ICONEXCLAMATION);
+		}
+		else//做真正的事
+		{
+			std::string toStr = CT2A(toCStr.GetBuffer());
+			std::string fromStr = CT2A(fromCStr.GetBuffer());
+			try
+			{
+				client->rename(fromStr, toStr);
+				MessageBox(L"重命名成功!", L"Success", MB_ICONEXCLAMATION);
+				updateFileDir();
+			}
+			catch (FTPException e)
+			{
+				showExceptionByMessageBox(e);
+			}
+		}
+	}
 }

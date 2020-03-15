@@ -2,14 +2,9 @@
 E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(502,28): warning C4018: “<”: 有符号/无符号不匹配
 E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(583,28): warning C4018: “<”: 有符号/无符号不匹配
 E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(644,28): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(762,7): warning C4101: “buf”: 未引用的局部变量
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1024,20): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1041,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1046,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1047,11): warning C4018: “<”: 有符号/无符号不匹配
-E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1097,19): warning C4244: “=”: 从“std::streamoff”转换到“int”，可能丢失数据
-  FTPException.cpp
-  FTP_SOCKET.cpp
-  MySocket.cpp
-  正在生成代码...
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1036,20): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1053,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1058,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1059,11): warning C4018: “<”: 有符号/无符号不匹配
+E:\C++-workspace\FTPClient\FTP_SOCKET\FTPClient.cpp(1109,19): warning C4244: “=”: 从“std::streamoff”转换到“int”，可能丢失数据
   FTP_SOCKET.vcxproj -> E:\C++-workspace\FTPClient\Debug\FTP_SOCKET.lib
